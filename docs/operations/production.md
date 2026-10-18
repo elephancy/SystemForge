@@ -10,33 +10,26 @@ layout, or private service topology. Those values are operational state and
 must remain outside source control, workflow logs, artifacts, issue text, and
 public documentation.
 
-## Release trigger
+## Release selection
 
-The production caller runs only when `SystemForge CI` completes for `main`. Its
-job-level guard requires all of the following:
+The restricted controller selects a completed `SystemForge CI` run only when:
 
-- the CI conclusion is successful;
-- the initiating event was a push;
-- the reported head branch is `main`;
-- the head repository is this repository.
+- its conclusion is successful;
+- its initiating event was a push;
+- its reported head branch is `main`;
+- its head repository is this repository;
+- its source SHA remains the current, unsuperseded default-branch commit.
 
-Pull requests, forks, manual dispatches, scheduled events, failed CI runs, and
-non-main pushes cannot request a production release through this caller.
+Pull requests, forks, failed CI runs, and non-main pushes cannot authorize a
+production release. Publication approval and operational gates remain private.
 
-## Public caller contract
+## Public workflow contract
 
-The caller grants only read access to Actions metadata, read access to repository
-contents, and permission to request a short-lived identity token. It invokes one
-immutable, reviewed reusable workflow revision and sends exactly three values:
-
-- the fixed application identifier `systemforge`;
-- the successful workflow run's head SHA;
-- the successful workflow run's numeric identifier.
-
-The caller contains no executable deployment steps, credential forwarding,
-host commands, or infrastructure configuration. Its reusable-workflow revision
-is pinned to a full commit SHA. Changes to that SHA require review and a passing
-contract test before merge.
+This repository has no production deployment caller. Its CI and public monitor
+request read access to repository contents. They cannot request deployment
+identity tokens, forward host credentials, invoke the retired public release
+gateway, or publish production releases. External actions remain pinned to full
+commit SHAs.
 
 ## CI artifact contract
 
@@ -46,9 +39,9 @@ retention, and downloads the same named artifact for integration testing. The
 integration job verifies the checksum, loads the images, and starts the stack
 without rebuilding.
 
-This provides evidence that the release request refers to the same source and
+This provides evidence that the controller consumes the same source and
 container set exercised by CI. A green build is still only one release gate;
-the restricted control plane independently verifies the request and performs
+the restricted control plane independently verifies provenance and performs
 the operational safety gates before promotion.
 
 ## Restricted release responsibilities
@@ -56,7 +49,7 @@ the operational safety gates before promotion.
 Infrastructure-specific behavior belongs exclusively to the restricted control
 plane. Its responsibilities include:
 
-- authenticating the release request and checking its repository, workflow,
+- authenticating source provenance and checking its repository, workflow,
   commit, branch, event, and conclusion;
 - resolving immutable images and rejecting missing or superseded releases;
 - creating a current backup and proving an isolated restore before mutation;
@@ -66,7 +59,7 @@ plane. Its responsibilities include:
 - issuing a signed, auditable receipt for the final outcome.
 
 Public workflow changes must not recreate any of those responsibilities in this
-repository. In particular, the caller must never gain direct machine access,
+repository. Public workflows must never gain direct machine access,
 embed infrastructure coordinates, or receive long-lived deployment credentials.
 
 ## Data and rollback invariants
@@ -92,8 +85,8 @@ canonical submission only after queue and worker health are stable.
 
 ## Changing the boundary
 
-Any change to the release caller must keep `scripts/deploy_workflow_contract.test.sh`
-green. Reviewers should reject a change that adds another input, executable
-step, mutable action reference, elevated permission, infrastructure literal, or
-credential surface. Changes to private release behavior are reviewed and tested
-in the restricted control-plane repository, not mirrored into this one.
+Changes to the artifact or public workflow boundary must keep
+`scripts/deploy_workflow_contract.test.sh` green. Reviewers should reject public
+publication authority, mutable action references, elevated permissions,
+infrastructure literals, or credential forwarding. Private release behavior is
+reviewed and tested in the restricted control plane rather than mirrored here.

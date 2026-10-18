@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -106,7 +110,20 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - run: docker network create web
-      - run: docker compose --env-file deploy/.env.example -f deploy/docker-compose.prod.yml build
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6
+        with:
+          files: deploy/docker-compose.prod.yml
+          targets: systemforge-api,systemforge-web,systemforge-worker
+          load: true
+          set: |
+            systemforge-api.cache-from=type=gha,scope=systemforge-systemforge-api
+            systemforge-api.cache-to=type=gha,mode=max,scope=systemforge-systemforge-api
+            systemforge-web.cache-from=type=gha,scope=systemforge-systemforge-web
+            systemforge-web.cache-to=type=gha,mode=max,scope=systemforge-systemforge-web
+            systemforge-worker.cache-from=type=gha,scope=systemforge-systemforge-worker
+            systemforge-worker.cache-to=type=gha,mode=max,scope=systemforge-systemforge-worker
+            *.context=.
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: systemforge-api:${{ github.sha }}

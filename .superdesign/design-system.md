@@ -13,7 +13,7 @@ A field instrument for systems engineers: part network-operations console, part 
 - Product wordmark: uppercase `SystemForge`, with condensed display lettering and monospaced operational subtitle.
 - Product mark: the current square `SF` mark on marketing/designer surfaces and the current shield mark in mission control.
 - Owner mark: the real transparent Mahmoud Elfeel elephant logo. Use it as the browser favicon and as the owner identity in the footer. Do not redraw, recolor, or replace it with a generic mark.
-- Repository: `https://github.com/mahmoudelfeelig/SystemForge`.
+- Repository: `https://github.com/elephancy/SystemForge`.
 - Owner site: `https://elfeel.me`.
 - Footer pattern: adapt the owner's existing cross-site pattern—elephant mark, copyright identity, and GitHub access—into SystemForge's square, dense, operational visual language.
 

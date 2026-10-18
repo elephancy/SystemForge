@@ -1,84 +1,25 @@
 #!/bin/sh
 set -eu
 
-WORKFLOW=.github/workflows/deploy-hetzner.yml
 CI_WORKFLOW=.github/workflows/ci.yml
 MONITOR=.github/workflows/production-monitor.yml
-EXPECTED_GATEWAY='uses: mahmoudelfeelig/HetznerReleaseGateway/.github/workflows/release.yml@f6319b2dbaf4c1f10230c6425967f34553acd61d'
-TEST_ROOT=$(mktemp -d)
-SANITIZED_WORKFLOW="$TEST_ROOT/deploy-workflow-public-boundary.yml"
 
-cleanup() {
-  rm -rf "$TEST_ROOT"
-}
-trap cleanup EXIT HUP INT TERM
-
-# The public repository may request a release only after the exact same-repo
-# main-branch push has completed the named CI workflow successfully.
-grep -Fq 'workflow_run:' "$WORKFLOW"
-grep -Fq 'workflows: ["SystemForge CI"]' "$WORKFLOW"
-grep -Fq 'types: [completed]' "$WORKFLOW"
-grep -Fq 'branches: [main]' "$WORKFLOW"
-grep -Fq "github.event.workflow_run.conclusion == 'success'" "$WORKFLOW"
-grep -Fq "github.event.workflow_run.event == 'push'" "$WORKFLOW"
-grep -Fq "github.event.workflow_run.head_branch == 'main'" "$WORKFLOW"
-grep -Fq 'github.event.workflow_run.head_repository.full_name == github.repository' "$WORKFLOW"
-if grep -Eq '^[[:space:]]+(workflow_dispatch|push|pull_request|schedule):' "$WORKFLOW"; then
-  echo "The production caller must trigger only from the completed CI workflow." >&2
-  exit 1
-fi
-
-# The caller has the least privilege needed to inspect the CI run and obtain a
-# short-lived release identity. No other permission is accepted.
-grep -Fq 'actions: read' "$WORKFLOW"
-grep -Fq 'contents: read' "$WORKFLOW"
-grep -Fq 'id-token: write' "$WORKFLOW"
-awk '
-  /^permissions:$/ { selected = 1; next }
-  selected && /^  [a-z-]+:/ {
-    count++
-    if (!(($1 == "actions:" && $2 == "read") ||
-          ($1 == "contents:" && $2 == "read") ||
-          ($1 == "id-token:" && $2 == "write"))) {
-      invalid = 1
-    }
-    next
-  }
-  selected { selected = 0 }
-  END { exit !(!invalid && count == 3) }
-' "$WORKFLOW"
-
-# Exactly one immutable reusable workflow receives exactly the three public
-# release claims. Infrastructure mutation cannot be implemented in this file.
-test "$(grep -Fc "$EXPECTED_GATEWAY" "$WORKFLOW")" -eq 1
-test "$(grep -Ec '^[[:space:]]*uses:' "$WORKFLOW")" -eq 1
-grep -Fq 'app: systemforge' "$WORKFLOW"
-grep -Fq 'source_sha: ${{ github.event.workflow_run.head_sha }}' "$WORKFLOW"
-grep -Fq 'ci_run_id: ${{ github.event.workflow_run.id }}' "$WORKFLOW"
-awk '
-  /^    with:$/ { selected = 1; next }
-  selected && /^      [a-z_][a-z0-9_]*:/ {
-    count++
-    if (!($1 == "app:" || $1 == "source_sha:" || $1 == "ci_run_id:")) {
-      invalid = 1
-    }
-    next
-  }
-  selected && !/^      / { selected = 0 }
-  END { exit !(!invalid && count == 3) }
-' "$WORKFLOW"
-if grep -Eq '^[[:space:]]+(run|steps):|^[[:space:]]*secrets:' "$WORKFLOW"; then
-  echo "The public caller must contain no executable or credential forwarding surface." >&2
-  exit 1
-fi
-
-# The expected public gateway identifier contains the provider name by design;
-# remove that one reviewed line before scanning for infrastructure disclosures.
-grep -Fv "$EXPECTED_GATEWAY" "$WORKFLOW" > "$SANITIZED_WORKFLOW"
-if grep -Eiq '(^|[^[:alnum:]_])(ssh|scp|rsync)([^[:alnum:]_]|$)|HETZNER|PRIVATE_KEY|KNOWN_HOSTS|HetznerPlatform|secrets\.|/opt/|([0-9]{1,3}\.){3}[0-9]{1,3}' "$SANITIZED_WORKFLOW"; then
-  echo "The public caller discloses or invokes restricted deployment infrastructure." >&2
-  exit 1
-fi
+# Public workflows produce tested artifacts and public monitoring evidence.
+# Release selection and publication belong exclusively to the private controller.
+test ! -e .github/workflows/deploy-hetzner.yml
+test ! -e .github/hetzner-release.json
+for workflow in .github/workflows/*.yml; do
+  if grep -Eiq 'HetznerReleaseGateway|secrets:[[:space:]]*inherit|HETZNER_|SSH_PRIVATE_KEY|SSH_KNOWN_HOSTS|HetznerPlatform|/opt/|(^|[^[:alnum:]_])(ssh|scp|rsync)([^[:alnum:]_]|$)' "$workflow"; then
+    echo "A public workflow reintroduces retired deployment authority or credentials." >&2
+    exit 1
+  fi
+  if grep -Eiq 'permissions:[[:space:]]*write-all|(^|[[:space:]{,])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*write' "$workflow"; then
+    echo "Public workflows must not request publication or repository write permissions." >&2
+    exit 1
+  fi
+done
+grep -Fq 'contents: read' "$CI_WORKFLOW"
+grep -Fq 'contents: read' "$MONITOR"
 
 # CI must continue to package the exact scanned SHA-tagged image set, verify its
 # checksum, and load that same artifact for integration without rebuilding it.
@@ -123,4 +64,4 @@ if grep -Eiq '/opt/|Caddy|dedicated SSH|host checkout|target Hetzner host' \
   exit 1
 fi
 
-echo "Central deployment caller contract passed."
+echo "Private-controller artifact and public-boundary contract passed."

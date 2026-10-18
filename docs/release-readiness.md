@@ -2,9 +2,9 @@
 
 SystemForge production releases use the two-part deployment boundary documented
 in `docs/operations/production.md`. Protected CI builds, scans, checksums, and
-integration-tests the exact application images. The minimal OIDC caller then
-sends only the application identifier, successful source SHA, and CI run
-identifier to an immutable reusable workflow.
+integration-tests the exact application images. The restricted controller selects
+a successful, unsuperseded `main` run and consumes its tested, checksummed image
+artifact. Public workflows carry no deployment identity or publication authority.
 
 The restricted release controller is responsible for provenance validation,
 immutable image promotion, backup and restore gates, bounded application smoke
@@ -12,7 +12,7 @@ checks, routing, rollback, and signed release receipts. Machine addressing,
 credentials, private paths, service placement, and recovery destinations are
 not release evidence that belongs in this public repository.
 
-Repository evidence establishes application behavior and the public caller
+Repository evidence establishes application behavior and the public artifact
 contract. It does not by itself establish that a release was accepted, that a
 current backup is independently recoverable, or that a live endpoint is healthy.
 Those claims require a controller receipt and fresh external checks for the same

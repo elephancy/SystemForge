@@ -110,14 +110,14 @@ location.replace("/lab");
 
 ## Production status
 
-An exact successful `main` CI run automatically invokes the minimal OIDC release
-caller. The public repository supplies only the application identifier, source
-SHA, and CI run identifier to an immutable reusable workflow. A restricted
-release controller owns machine access, routing, immutable image promotion,
-backup, restore, acceptance, and rollback. No host credential or direct-host
-procedure belongs in this repository. The boundary is documented in
-`docs/operations/production.md`, with current public evidence limits in
-`docs/release-readiness.md`.
+The restricted release controller selects an exact successful, unsuperseded
+`main` CI run and consumes its tested, checksummed image artifact. Public
+workflows build and verify the application and monitor public health; they do
+not request deployment identities or publish production releases. The controller
+owns immutable image promotion, backup, restore, acceptance, and rollback. No
+host credential or direct-host procedure belongs in this repository. The boundary
+is documented in `docs/operations/production.md`, with current public evidence
+limits in `docs/release-readiness.md`.
 
 ## Workspace
 

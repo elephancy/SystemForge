@@ -496,7 +496,7 @@ export function LandingPage() {
             <span className="visually-hidden">LinkedIn</span>
           </a>
           <a
-            href="https://github.com/mahmoudelfeelig/SystemForge"
+            href="https://github.com/elephancy/SystemForge"
             target="_blank"
             rel="noreferrer"
             aria-label="SystemForge on GitHub"

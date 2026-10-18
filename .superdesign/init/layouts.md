@@ -357,7 +357,7 @@ export function LandingPage() {
       <footer className="site-footer">
         <span>SystemForge / Distributed systems laboratory</span>
         <a
-          href="https://github.com/mahmoudelfeelig/SystemForge"
+          href="https://github.com/elephancy/SystemForge"
           target="_blank"
           rel="noreferrer"
         >

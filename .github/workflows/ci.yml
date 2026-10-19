@@ -34,7 +34,7 @@ jobs:
       - run: pnpm test:performance
       - run: pnpm build
       - run: pnpm --filter @systemforge/web test:sites
-      - run: pnpm audit --prod --audit-level=high
+      - run: pnpm audit --audit-level=high
 
   repository:
     runs-on: ubuntu-latest

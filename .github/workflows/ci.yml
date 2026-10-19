@@ -1,4 +1,4 @@
-name: SystemForge CI
+name: CI
 
 on:
   push:
@@ -8,11 +8,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 11.16.0
@@ -28,12 +34,14 @@ jobs:
       - run: pnpm test:performance
       - run: pnpm build
       - run: pnpm --filter @systemforge/web test:sites
-      - run: pnpm audit --prod --audit-level=high
+      - run: pnpm audit --audit-level=high
 
   repository:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Lint GitHub Actions workflows
         env:
           ACTIONLINT_VERSION: 1.7.12
@@ -63,6 +71,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 11.16.0
@@ -79,6 +89,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 11.16.0
@@ -105,8 +117,24 @@ jobs:
       VITE_CANONICAL_RELEASE_ENABLED: "true"
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - run: docker network create web
-      - run: docker compose --env-file deploy/.env.example -f deploy/docker-compose.prod.yml build
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6
+        with:
+          source: .
+          files: deploy/docker-compose.prod.yml
+          targets: systemforge-api,systemforge-web,systemforge-worker
+          load: true
+          set: |
+            systemforge-api.cache-from=type=gha,scope=systemforge-systemforge-api
+            systemforge-api.cache-to=type=gha,mode=max,scope=systemforge-systemforge-api
+            systemforge-web.cache-from=type=gha,scope=systemforge-systemforge-web
+            systemforge-web.cache-to=type=gha,mode=max,scope=systemforge-systemforge-web
+            systemforge-worker.cache-from=type=gha,scope=systemforge-systemforge-worker
+            systemforge-worker.cache-to=type=gha,mode=max,scope=systemforge-systemforge-worker
+            *.context=.
       - uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: systemforge-api:${{ github.sha }}
@@ -159,6 +187,8 @@ jobs:
       WORKER_MAINTENANCE_MS: 1000
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: systemforge-images-${{ github.sha }}-${{ github.run_attempt }}

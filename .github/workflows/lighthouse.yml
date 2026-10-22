@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 20
     env:
       CHROME_PATH: /usr/bin/google-chrome
-      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -43,7 +43,7 @@ jobs:
           version: 11.16.0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: '24'
+          node-version: "24"
       - name: Install website dependencies
         run: pnpm install --frozen-lockfile
       - name: Build local production website
@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           test -x "$CHROME_PATH"
-          test -f apps/web/dist/index.html
+          test -f apps/web/dist/client/index.html
           npx --yes --package=@lhci/cli@0.15.1 lhci autorun --config=./.github/lighthouseci.cjs
       - name: Preserve Lighthouse reports in the repository artifact store
         if: always()

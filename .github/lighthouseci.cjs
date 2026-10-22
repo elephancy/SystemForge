@@ -2,18 +2,18 @@
 module.exports = {
   ci: {
     collect: {
-      staticDistDir: './apps/web/dist',
-      url: ['http://localhost/'],
+      staticDistDir: "./apps/web/dist/client",
+      url: ["http://localhost/"],
       isSinglePageApplication: true,
       numberOfRuns: 1,
     },
     assert: {
       assertions: {
-        'categories:accessibility': ['error', { minScore: 0.9 }],
-        'categories:performance': ['warn', { minScore: 0.8 }],
-        'categories:seo': ['warn', { minScore: 0.9 }],
+        "categories:accessibility": ["error", { minScore: 0.9 }],
+        "categories:performance": ["warn", { minScore: 0.8 }],
+        "categories:seo": ["warn", { minScore: 0.9 }],
       },
     },
-    upload: { target: 'filesystem', outputDir: './artifacts/lighthouse' },
+    upload: { target: "filesystem", outputDir: "./artifacts/lighthouse" },
   },
 };

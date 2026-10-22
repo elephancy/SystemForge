@@ -1,0 +1,12 @@
+# Exact reviewed public unit-fixture and UI-selector fingerprints; no path/rule suppression.
+08b6d3174738d2cdb9a33dfc4c240920c4f7fadf:apps/web/tests/share.test.ts:generic-api-key:123
+08b6d3174738d2cdb9a33dfc4c240920c4f7fadf:apps/web/tests/share.test.ts:generic-api-key:134
+08b6d3174738d2cdb9a33dfc4c240920c4f7fadf:apps/web/tests/share.test.ts:generic-api-key:268
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/src/components/RunHistoryPanel.tsx:generic-api-key:71
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/ai-assistant.test.tsx:generic-api-key:224
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/local-run-store.test.ts:generic-api-key:263
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/local-run-store.test.ts:generic-api-key:360
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/local-run-store.test.ts:generic-api-key:528
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/local-share-hydration.test.ts:generic-api-key:158
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/local-share-hydration.test.ts:generic-api-key:202
+257ebee73123d4a86fcd6b46873c748ca406bc9b:apps/web/tests/share.test.ts:generic-api-key:399

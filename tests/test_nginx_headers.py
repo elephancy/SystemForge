@@ -2,6 +2,7 @@
 import http.client
 import os
 from pathlib import Path
+import re
 import shutil
 import socket
 import subprocess
@@ -38,6 +39,9 @@ class NginxHeaders(unittest.TestCase):
         source = source.replace("/etc/nginx/mime.types", str(mime))
         source = source.replace("/usr/share/nginx/html", str(html))
         source = source.replace("listen 8080;", f"listen 127.0.0.1:{cls.port};")
+        # Keep fixture logging local rather than depending on host device paths.
+        source = re.sub(r"(?m)^error_log\s+\S+\s+warn;", f"error_log {cls.root}/error.log warn;", source)
+        source = re.sub(r"(?m)^  access_log\s+\S+;", f"  access_log {cls.root}/access.log;", source)
         for name in ["client_temp", "proxy_temp", "fastcgi_temp", "uwsgi_temp", "scgi_temp"]:
             source = source.replace(f"/tmp/{name}", str(cls.root / name))
         config = cls.root / "nginx.conf"

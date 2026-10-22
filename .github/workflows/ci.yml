@@ -31,6 +31,23 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test:coverage
+      - name: Preserve coverage report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./coverage/lcov.info
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.CODECOV_UPLOAD_ENABLED == 'true'
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+          version: v11.3.1
+          cleanup: true
       - run: pnpm test:performance
       - run: pnpm build
       - run: pnpm --filter @systemforge/web test:sites

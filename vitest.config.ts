@@ -10,7 +10,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json-summary", "html"],
+      reporter: ["text", "json-summary", "html", "lcov"],
       include: [
         "packages/contracts/src/index.ts",
         "packages/sim-core/src/**/*.ts",

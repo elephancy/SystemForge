@@ -15,7 +15,7 @@ COPY packages/contracts packages/contracts
 COPY packages/sim-core packages/sim-core
 RUN pnpm --filter @systemforge/web build
 
-FROM nginx:1.29-alpine
+FROM nginx:1.31-alpine
 RUN apk upgrade --no-cache
 COPY deploy/nginx.conf /etc/nginx/nginx.conf
 COPY deploy/offline.html /usr/share/nginx/html/offline.html

@@ -1,4 +1,4 @@
-FROM node:25-trixie-slim AS build
+FROM node:26-trixie-slim AS build
 ARG VITE_CANONICAL_RELEASE_ENABLED=false
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH

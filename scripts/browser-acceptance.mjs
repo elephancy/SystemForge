@@ -649,6 +649,52 @@ const captureScreenshot = async (client, filename) => {
   report.screenshots.push(path);
 };
 
+const startAndPauseLocalRun = async (client, label) => {
+  const state = await evaluate(
+    client,
+    `(() => new Promise((resolve) => {
+      const run = document.querySelector(".button--run");
+      if (!run || run.disabled) {
+        resolve({ paused: false, control: run?.textContent?.trim() ?? "missing" });
+        return;
+      }
+      let settled = false;
+      const finish = (paused) => {
+        if (settled) return;
+        settled = true;
+        observer.disconnect();
+        clearTimeout(timeout);
+        resolve({
+          paused,
+          control: document.querySelector(".button--run")?.textContent?.trim(),
+          runState: document.querySelector(".simulation-run-state")?.textContent?.trim(),
+        });
+      };
+      const pauseWhenReady = () => {
+        if (settled) return;
+        const pause = document.querySelector(".button--run");
+        if (pause?.textContent?.trim().endsWith("Pause") && !pause.disabled) {
+          pause.click();
+          finish(true);
+        }
+      };
+      const observer = new MutationObserver(pauseWhenReady);
+      const timeout = setTimeout(() => finish(false), 20_000);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ["disabled"],
+      });
+      run.click();
+      pauseWhenReady();
+    }))()`,
+    true,
+  );
+  assert.equal(state.paused, true, `${label}: ${JSON.stringify(state)}`);
+};
+
 const routeArtifactName = (route) =>
   route === "/" ? "landing" : route.slice(1).replaceAll(/[^a-z0-9]+/gi, "-");
 
@@ -1147,33 +1193,10 @@ try {
     "AI capability-off, custom edit, local share restore and saved snapshot",
   );
 
-  const paused = await evaluate(
+  await startAndPauseLocalRun(
     client,
-    `(async () => {
-      const run = [...document.querySelectorAll("button")].find((button) => button.textContent?.includes("Run locally"));
-      if (!run) return false;
-      return new Promise((resolve) => {
-        const deadline = performance.now() + 5000;
-        const pauseWhenReady = () => {
-          const pause = [...document.querySelectorAll("button")].find((button) => button.textContent?.trim().endsWith("Pause"));
-          if (pause && !pause.disabled) {
-            pause.click();
-            resolve(true);
-            return;
-          }
-          if (performance.now() >= deadline) {
-            resolve(false);
-            return;
-          }
-          requestAnimationFrame(pauseWhenReady);
-        };
-        run.click();
-        requestAnimationFrame(pauseWhenReady);
-      });
-    })()`,
-    true,
+    "The local run could not be paused in flight",
   );
-  assert.equal(paused, true, "The local run could not be paused in flight.");
   await waitFor(
     client,
     "document.querySelector(\"[aria-label='Paused run interventions']\") !== null",
@@ -1645,36 +1668,20 @@ try {
   assert.equal(
     await evaluate(
       client,
-      `(async () => {
+      `(() => {
         const runMode = [...document.querySelectorAll(".workspace-modes button")].find(
           (button) => button.textContent?.trim().toLowerCase().endsWith("run"),
         );
         runMode?.click();
-        const run = document.querySelector(".button--run");
-        if (!runMode || !run) return false;
-        run.click();
-        return new Promise((resolve) => {
-          const deadline = performance.now() + 5000;
-          const pauseWhenReady = () => {
-            const primary = document.querySelector(".button--run");
-            if (primary?.textContent?.trim().endsWith("Pause") && !primary.disabled) {
-              primary.click();
-              resolve(true);
-              return;
-            }
-            if (performance.now() >= deadline) {
-              resolve(false);
-              return;
-            }
-            requestAnimationFrame(pauseWhenReady);
-          };
-          requestAnimationFrame(pauseWhenReady);
-        });
+        return Boolean(runMode);
       })()`,
-      true,
     ),
     true,
     "Mobile run-mode or primary run control could not start and pause a run.",
+  );
+  await startAndPauseLocalRun(
+    client,
+    "The mobile local run could not be paused in flight",
   );
   await waitFor(
     client,

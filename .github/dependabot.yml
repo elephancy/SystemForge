@@ -5,6 +5,27 @@ updates:
     schedule:
       interval: daily
     groups:
+      react:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      vitest:
+        patterns:
+          - vitest
+          - "@vitest/*"
+      vite:
+        patterns:
+          - vite
+          - "@vitejs/*"
+      typescript-eslint:
+        patterns:
+          - typescript
+          - typescript-eslint
+          - "@typescript-eslint/*"
+          - eslint
+          - "@eslint/*"
       production-dependencies:
         dependency-type: production
         update-types:

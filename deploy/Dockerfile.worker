@@ -1,7 +1,7 @@
-FROM node:24-trixie-slim AS toolchain
+FROM node:26-trixie-slim AS toolchain
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-RUN corepack enable && corepack prepare pnpm@11.16.0 --activate
+RUN npm install --global pnpm@11.16.0
 WORKDIR /workspace
 
 FROM toolchain AS dependencies
@@ -22,7 +22,7 @@ COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/sim-core/package.json packages/sim-core/package.json
 RUN pnpm install --prod --frozen-lockfile --filter @systemforge/worker...
 
-FROM node:24-trixie-slim
+FROM node:26-trixie-slim
 ENV NODE_ENV=production
 WORKDIR /app
 RUN apt-get update \

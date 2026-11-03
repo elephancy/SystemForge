@@ -35,8 +35,8 @@ const DecisionPage = lazy(() =>
 export function App() {
   return (
     <RouteErrorBoundary>
+      <RouteMetadata />
       <Suspense fallback={<RouteLoadingState />}>
-        <RouteMetadata />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/lab" element={<LabPage />} />

@@ -18,7 +18,6 @@ const renderPath = (path: string) => {
     '<meta property="og:url" content="">',
     '<meta name="twitter:title" content="">',
     '<meta name="twitter:description" content="">',
-    '<link rel="canonical" href="/">',
   ].join("");
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -38,6 +37,9 @@ describe("route metadata", () => {
       ).toBe("index,follow"),
     );
     expect(document.title).toBe("Lab — SystemForge");
+    const canonicals = document.head.querySelectorAll('link[rel="canonical"]');
+    expect(canonicals).toHaveLength(1);
+    expect(canonicals[0]?.getAttribute("href")).toBe(`${window.location.origin}/lab`);
   });
 
   it("describes the completed-run replay workspace", async () => {
@@ -53,6 +55,22 @@ describe("route metadata", () => {
         .querySelector('meta[name="robots"]')
         ?.getAttribute("content"),
     ).toBe("index,follow");
+  });
+
+  it("updates an existing canonical without creating a second one", async () => {
+    renderPath("/custom");
+    const existing = document.createElement("link");
+    existing.rel = "canonical";
+    existing.href = `${window.location.origin}/custom`;
+    // React may already have run the effect; replace the head link to exercise
+    // an existing self-canonical on a fresh render.
+    document.head.querySelector('link[rel="canonical"]')?.remove();
+    document.head.append(existing);
+    cleanup();
+    render(<MemoryRouter initialEntries={["/custom"]}><RouteMetadata /></MemoryRouter>);
+    await waitFor(() => expect(document.title).toBe("Create a scenario — SystemForge"));
+    expect(document.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
+    expect(existing.getAttribute("href")).toBe(`${window.location.origin}/custom`);
   });
 
   it("keeps the decision workbench as an indexable workspace", async () => {

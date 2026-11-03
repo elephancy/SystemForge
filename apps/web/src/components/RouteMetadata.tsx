@@ -65,10 +65,15 @@ export function RouteMetadata() {
     setMeta('meta[property="og:url"]', canonicalUrl);
     setMeta('meta[name="twitter:title"]', route.title);
     setMeta('meta[name="twitter:description"]', route.description);
-    const canonical = document.head.querySelector<HTMLLinkElement>(
+    let canonical = document.head.querySelector<HTMLLinkElement>(
       'link[rel="canonical"]',
     );
-    if (canonical) canonical.href = canonicalUrl;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.append(canonical);
+    }
+    canonical.href = canonicalUrl;
     let robots = document.head.querySelector<HTMLMetaElement>(
       'meta[name="robots"]',
     );

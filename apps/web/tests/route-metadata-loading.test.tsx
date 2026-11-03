@@ -22,17 +22,31 @@ afterEach(() => {
 });
 
 it("sets the canonical while a directly opened route is still loading", async () => {
-  render(<MemoryRouter initialEntries={["/lab"]}><App /></MemoryRouter>);
+  render(
+    <MemoryRouter initialEntries={["/lab"]}>
+      <App />
+    </MemoryRouter>,
+  );
   expect(await screen.findByText("Loading lab")).toBeTruthy();
   await waitFor(() => expect(document.title).toBe("Lab — SystemForge"));
-  expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute("href"))
-    .toBe(`${window.location.origin}/lab`);
+  expect(
+    document.head.querySelector('link[rel="canonical"]')?.getAttribute("href"),
+  ).toBe(`${window.location.origin}/lab`);
 });
 
 it("sets noindex while a shared scenario is still loading", async () => {
-  render(<MemoryRouter initialEntries={["/scenario/abc-123"]}><App /></MemoryRouter>);
+  render(
+    <MemoryRouter initialEntries={["/scenario/abc-123"]}>
+      <App />
+    </MemoryRouter>,
+  );
   expect(await screen.findByText("Loading lab")).toBeTruthy();
-  await waitFor(() => expect(document.head.querySelector('meta[name="robots"]')?.getAttribute("content"))
-    .toBe("noindex,follow"));
+  await waitFor(() =>
+    expect(
+      document.head
+        .querySelector('meta[name="robots"]')
+        ?.getAttribute("content"),
+    ).toBe("noindex,follow"),
+  );
   expect(document.title).toBe("Shared scenario — SystemForge");
 });

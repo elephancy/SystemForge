@@ -39,7 +39,9 @@ describe("route metadata", () => {
     expect(document.title).toBe("Lab — SystemForge");
     const canonicals = document.head.querySelectorAll('link[rel="canonical"]');
     expect(canonicals).toHaveLength(1);
-    expect(canonicals[0]?.getAttribute("href")).toBe(`${window.location.origin}/lab`);
+    expect(canonicals[0]?.getAttribute("href")).toBe(
+      `${window.location.origin}/lab`,
+    );
   });
 
   it("describes the completed-run replay workspace", async () => {
@@ -67,10 +69,20 @@ describe("route metadata", () => {
     document.head.querySelector('link[rel="canonical"]')?.remove();
     document.head.append(existing);
     cleanup();
-    render(<MemoryRouter initialEntries={["/custom"]}><RouteMetadata /></MemoryRouter>);
-    await waitFor(() => expect(document.title).toBe("Create a scenario — SystemForge"));
-    expect(document.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
-    expect(existing.getAttribute("href")).toBe(`${window.location.origin}/custom`);
+    render(
+      <MemoryRouter initialEntries={["/custom"]}>
+        <RouteMetadata />
+      </MemoryRouter>,
+    );
+    await waitFor(() =>
+      expect(document.title).toBe("Create a scenario — SystemForge"),
+    );
+    expect(
+      document.head.querySelectorAll('link[rel="canonical"]'),
+    ).toHaveLength(1);
+    expect(existing.getAttribute("href")).toBe(
+      `${window.location.origin}/custom`,
+    );
   });
 
   it("keeps the decision workbench as an indexable workspace", async () => {

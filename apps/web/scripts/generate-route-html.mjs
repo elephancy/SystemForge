@@ -1,8 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import metadata from "../src/routeMetadata.json" with { type: "json" };
 
-const output = new URL("../dist/client/", import.meta.url);
-const template = await readFile(new URL("index.html", output), "utf8");
+const output = new URL("../dist/nginx/", import.meta.url);
+const template = await readFile(
+  new URL("../dist/client/index.html", import.meta.url),
+  "utf8",
+);
 const escape = (text) =>
   text
     .replaceAll("&", "&amp;")

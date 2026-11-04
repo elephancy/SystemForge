@@ -1,36 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-
-const metadata = {
-  "/": {
-    title: "SystemForge — Test distributed systems in your browser",
-    description:
-      "Model a topology, run workloads and failures, and trace bottlenecks in your browser.",
-  },
-  "/lab": {
-    title: "Lab — SystemForge",
-    description: "Build a topology and run repeatable failure tests.",
-  },
-  "/custom": {
-    title: "Create a scenario — SystemForge",
-    description: "Define workload, incidents, and pass criteria.",
-  },
-  "/interview": {
-    title: "Prepare an interview — SystemForge",
-    description:
-      "Prepare a candidate brief, private rubric, and repeatable scenario.",
-  },
-  "/replay": {
-    title: "Replay a run — SystemForge",
-    description:
-      "Verify a replay bundle and recompute the captured run locally.",
-  },
-  "/decisions": {
-    title: "Decision workbench — SystemForge",
-    description:
-      "Compare architecture alternatives, run history, and captured evidence.",
-  },
-} as const;
+import metadata from "../routeMetadata.json";
 
 const setMeta = (selector: string, content: string) => {
   const element = document.head.querySelector<HTMLMetaElement>(selector);

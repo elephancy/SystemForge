@@ -26,6 +26,9 @@ class NginxHeaders(unittest.TestCase):
                     "assets/app.js": "console.log('fixture')", "manifest.webmanifest": "{}",
                     "asset-manifest.json": "{}", "asset-precache.json": "{}",
                     "robots.txt": "User-agent: *", "sitemap.xml": "<urlset/>"}
+        (html / "__seo").mkdir()
+        for route in ["lab", "custom", "interview", "replay", "decisions", "shared", "not-found"]:
+            fixtures[f"__seo/{route}.html"] = f"<!doctype html>{route}"
         for name, text in fixtures.items():
             (html / name).write_text(text)
         with socket.socket() as listener:
@@ -97,6 +100,7 @@ class NginxHeaders(unittest.TestCase):
             ("/scenario/fixture?mode=view", 200, spa, cdn, "noindex, follow"),
             ("/scenario/fixture/extra", 404, spa, cdn, None),
             ("/unknown-route", 404, spa, cdn, None),
+            ("/__seo/lab.html", 404, spa, cdn, None),
             ("/offline.html", 404, "no-store, no-transform", None, None),
         ]
         for path, status, cache, edge, robots in cases:

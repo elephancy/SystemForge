@@ -20,6 +20,7 @@ RUN apk upgrade --no-cache && apk add --no-cache 'libexpat>=2.10.0-r0'
 COPY deploy/nginx.conf /etc/nginx/nginx.conf
 COPY deploy/offline.html /usr/share/nginx/html/offline.html
 COPY --from=build /workspace/apps/web/dist/client /usr/share/nginx/html
+COPY --from=build /workspace/apps/web/dist/nginx /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx
 EXPOSE 8080
 USER nginx

@@ -51,10 +51,13 @@ class EdgeContract(unittest.TestCase):
         self.rejected('map $request_uri $route_robots_tag', 'map $uri $route_robots_tag')
 
     def test_unknown_routes_keep_honest_404_status(self):
-        self.rejected('error_page 404 =404 /index.html;', 'error_page 404 =200 /index.html;')
+        self.rejected('error_page 404 =404 /__seo/not-found.html;', 'error_page 404 =200 /__seo/not-found.html;')
+
+    def test_generated_metadata_shells_must_be_internal(self):
+        self.rejected('location ^~ /__seo/ {\n      internal;', 'location ^~ /__seo/ {')
 
     def test_offline_error_page_must_be_internal(self):
-        self.rejected('      internal;', '      # internal removed')
+        self.rejected('location = /offline.html {\n      internal;', 'location = /offline.html {')
 
     def test_quoted_braces_and_comments_cannot_spoof_header_scope(self):
         parsed = POLICY.directives('http { # }\n map $uri $x { default "{;#}"; } }')

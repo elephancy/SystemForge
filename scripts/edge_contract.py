@@ -147,20 +147,25 @@ def check(source):
     require(("try_files", "$uri", "=404") in entries(one_block(server, ("location", "/assets/"))),
             "Missing assets must retain a real 404.")
     fallback = entries(one_block(server, ("location", "/")))
-    require(("error_page", "404", "=404", "/index.html") in fallback,
+    require(("error_page", "404", "=404", "/__seo/not-found.html") in fallback,
             "Unknown routes must retain a real 404 while rendering the SPA shell.")
     require(("try_files", "$uri", "$uri/", "=404") in fallback,
             "Unknown routes must not become successful SPA responses.")
-    for route in ("^/(lab|custom|interview|replay|decisions)$", "^/scenario/[A-Za-z0-9-]+$"):
-        require(("try_files", "/index.html", "=404") in entries(one_block(server, ("location", "~", route))),
+    for route, shell in (("^/(lab|custom|interview|replay|decisions)$", "/__seo/$1.html"),
+                         ("^/scenario/[A-Za-z0-9-]+$", "/__seo/shared.html")):
+        require(("try_files", shell, "=404") in entries(one_block(server, ("location", "~", route))),
                 "Named SPA routes require the application shell and an honest missing-shell 404.")
+    require(("internal",) in entries(one_block(server, ("location", "^~", "/__seo/"))),
+            "Generated metadata shells must remain internal.")
     require(("internal",) in entries(one_block(server, ("location", "=", "/offline.html"))),
             "The offline error page must remain internal.")
 
     for request, code, expected_cache, expected_cdn, expected_robots in CASES:
         uri = request.split("?", 1)[0]
         # SPA fallbacks change $uri; X-Robots-Tag must use the original request.
-        internal_uri = "/index.html" if uri.startswith("/scenario/") or uri in ("/lab", "/unknown-route") else uri
+        internal_uri = ("/__seo/shared.html" if uri.startswith("/scenario/") else
+                        "/__seo/lab.html" if uri == "/lab" else
+                        "/__seo/not-found.html" if uri == "/unknown-route" else uri)
         values = (mapped(cache, mapped(status, str(code)) + ":" + internal_uri),
                   mapped(cdn, internal_uri), mapped(robots, request))
         expected = (expected_cache or "", expected_cdn or "", expected_robots or "")

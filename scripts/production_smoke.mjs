@@ -108,6 +108,43 @@ if (
 )
   throw new Error("The Cloudflare stale-shell cache policy was not active.");
 
+for (const [path, title] of [
+  ["/", "SystemForge — Test distributed systems in your browser"],
+  ["/lab", "Lab — SystemForge"],
+  ["/custom", "Create a scenario — SystemForge"],
+  ["/interview", "Prepare an interview — SystemForge"],
+  ["/replay", "Replay a run — SystemForge"],
+  ["/decisions", "Decision workbench — SystemForge"],
+]) {
+  const page = await request(`${webOrigin}${path}`);
+  if (
+    typeof page.body !== "string" ||
+    !page.body.includes(`<title>${title}</title>`) ||
+    !page.body.includes(
+      `rel="canonical" href="https://systemforge.elfeel.me${path}"`,
+    ) ||
+    !page.body.includes('name="robots" content="index,follow"')
+  )
+    throw new Error(`Initial HTML metadata is incorrect for ${path}`);
+}
+for (const [path, status] of [
+  ["/scenario/metadata-smoke", 200],
+  ["/unknown-route", 404],
+]) {
+  const response = await fetch(`${webOrigin}${path}`);
+  const html = await response.text();
+  if (
+    response.status !== status ||
+    !html.includes('name="robots" content="noindex,follow"')
+  )
+    throw new Error(
+      `Private or unknown route metadata is incorrect for ${path}`,
+    );
+}
+const internal = await fetch(`${webOrigin}/__seo/lab.html`);
+if (internal.status !== 404)
+  throw new Error("Internal metadata files must not be public routes");
+
 await request(`${apiOrigin}/api/health/ready`);
 
 const shared = await request(`${apiOrigin}/api/scenarios`, {
